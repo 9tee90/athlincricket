@@ -1,51 +1,68 @@
 # AthlinCricket
 
-A platform for creating and participating in cricket challenges.
+A Next.js application for cricket challenges and feedback.
+
+## Environment Variables
+
+The following environment variables are required for the application to function:
+
+```env
+# Database
+DATABASE_URL="your-database-url"
+
+# NextAuth.js
+NEXTAUTH_URL="https://athlincricket.vercel.app"
+NEXTAUTH_SECRET="your-nextauth-secret"
+
+# UploadThing
+UPLOADTHING_SECRET="your-uploadthing-secret"
+```
+
+## Deployment
+
+The application is deployed on Vercel. The following configuration is used:
+
+```json
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}
+```
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy the environment variables from above to a `.env` file
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
 ## Features
 
 - User authentication with NextAuth.js
-- Challenge creation wizard for XPro users
-- Video upload support with UploadThing
-- Responsive design with TailwindCSS
-- Type-safe with TypeScript
-- Database with Prisma and PostgreSQL
+- Video uploads with UploadThing
+- Challenge creation and management
+- Pose feedback system
+- Winner selection for challenges
 
-## Getting Started
+## Tech Stack
 
-1. Clone the repository:
-```bash
-git clone https://github.com/9tee90/athlincricket.git
-cd athlincricket
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-Create a `.env` file with the following variables:
-```env
-DATABASE_URL="your-database-url"
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-nextauth-secret"
-UPLOADTHING_SECRET="your-uploadthing-secret"
-UPLOADTHING_APP_ID="your-uploadthing-app-id"
-```
-
-4. Set up the database:
-```bash
-npx prisma generate
-npx prisma db push
-```
-
-5. Run the development server:
-```bash
-npm run dev
-```
-
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+- Next.js 14
+- TypeScript
+- Prisma with PostgreSQL
+- NextAuth.js
+- UploadThing
+- Tailwind CSS
+- tRPC
 
 ## Project Structure
 
