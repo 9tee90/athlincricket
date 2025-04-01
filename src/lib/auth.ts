@@ -1,19 +1,20 @@
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { NextAuthOptions } from "next-auth"
+import { PrismaAdapter } from "@next-auth/prisma-adapter"
+import { NextAuthOptions, getServerSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "./prisma"
 import { compare } from "bcryptjs"
+import { Role } from "@prisma/client"
 
 declare module "next-auth" {
   interface User {
     id: string
-    role: string
+    role: Role
   }
   
   interface Session {
     user: User & {
       id: string
-      role: string
+      role: Role
     }
   }
 }
@@ -63,7 +64,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
+        session.user.role = token.role as Role;
       }
       return session;
     },
@@ -77,4 +78,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-} 
+}
+
+export const auth = () => getServerSession(authOptions) 
