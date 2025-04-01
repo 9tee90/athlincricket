@@ -12,12 +12,12 @@ export const ourFileRouter = {
       if (!session?.user) {
         throw new Error("Unauthorized");
       }
-      if (session.user.role !== "ATHLETE") {
-        throw new Error("Only athletes can upload videos");
+      if (session.user.role !== "player") {
+        throw new Error("Only players can upload videos");
       }
       return { userId: session.user.id };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ file }) => {
       return { fileUrl: file.url };
     }),
 } satisfies FileRouter;

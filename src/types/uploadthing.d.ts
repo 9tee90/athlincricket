@@ -1,8 +1,8 @@
 import type { FileRouter } from "uploadthing/next";
 
-export type OurFileRouter = {
+export type OurFileRouter = FileRouter & {
   videoUploader: {
     maxFileSize: "512MB";
     maxFileCount: 1;
   };
-} satisfies FileRouter; 
+}; 

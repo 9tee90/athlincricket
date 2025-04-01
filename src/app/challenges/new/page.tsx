@@ -1,48 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { ChallengeCategory, ChallengeFormData } from '@/types';
+import { redirect } from 'next/navigation';
+import { ChallengeFormData, ChallengeCategory } from '@/types';
 import Step1Basics from './components/Step1Basics';
 import Step2Media from './components/Step2Media';
 import Step3Deadline from './components/Step3Deadline';
 import Step4Review from './components/Step4Review';
 
+const initialFormData: ChallengeFormData = {
+  title: '',
+  category: ChallengeCategory.technical,
+  description: '',
+  videoUrl: '',
+  reward: '',
+  deadline: new Date(),
+};
+
 export default function NewChallengePage() {
-  const router = useRouter();
-  const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<ChallengeFormData>({
-    category: ChallengeCategory.technical,
-    title: '',
-    description: '',
-    videoUrl: '',
-    deadline: new Date(),
-  });
-
-  // Redirect if not authenticated or not xpro
-  if (!session?.user || session.user.role !== 'xpro') {
-    router.push('/');
-    return null;
-  }
-
-  const handleNext = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const [formData, setFormData] = useState<ChallengeFormData>(initialFormData);
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('/api/challenges', {
+      await fetch('/api/challenges', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,89 +31,58 @@ export default function NewChallengePage() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create challenge');
-      }
-
-      router.push('/dashboard/xpro');
+      redirect('/dashboard/xpro');
     } catch (error) {
       console.error('Error creating challenge:', error);
       // TODO: Add error handling UI
     }
   };
 
-  const updateFormData = (data: Partial<ChallengeFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <Step1Basics
+            formData={formData}
+            onUpdate={(data: Partial<ChallengeFormData>) => setFormData({ ...formData, ...data })}
+            onNext={() => setCurrentStep(2)}
+          />
+        );
+      case 2:
+        return (
+          <Step2Media
+            formData={formData}
+            onUpdate={(data: Partial<ChallengeFormData>) => setFormData({ ...formData, ...data })}
+            onNext={() => setCurrentStep(3)}
+            onBack={() => setCurrentStep(1)}
+          />
+        );
+      case 3:
+        return (
+          <Step3Deadline
+            formData={formData}
+            onUpdate={(data: Partial<ChallengeFormData>) => setFormData({ ...formData, ...data })}
+            onNext={() => setCurrentStep(4)}
+            onBack={() => setCurrentStep(2)}
+          />
+        );
+      case 4:
+        return (
+          <Step4Review
+            formData={formData}
+            onSubmit={handleSubmit}
+            onBack={() => setCurrentStep(3)}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        {/* Progress indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {[1, 2, 3, 4].map((step) => (
-              <div
-                key={step}
-                className={`flex items-center ${
-                  step < 4 ? 'flex-1' : ''
-                }`}
-              >
-                <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    currentStep >= step
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {step}
-                </div>
-                {step < 4 && (
-                  <div
-                    className={`h-1 flex-1 ${
-                      currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step content */}
-        <div className="bg-white rounded-lg shadow p-6">
-          {currentStep === 1 && (
-            <Step1Basics
-              formData={formData}
-              onUpdate={updateFormData}
-              onNext={handleNext}
-            />
-          )}
-          {currentStep === 2 && (
-            <Step2Media
-              formData={formData}
-              onUpdate={updateFormData}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          {currentStep === 3 && (
-            <Step3Deadline
-              formData={formData}
-              onUpdate={updateFormData}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          )}
-          {currentStep === 4 && (
-            <Step4Review
-              formData={formData}
-              onSubmit={handleSubmit}
-              onBack={handleBack}
-            />
-          )}
-        </div>
-      </div>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Create New Challenge</h1>
+      <div className="max-w-2xl mx-auto">{renderStep()}</div>
     </div>
   );
 } 

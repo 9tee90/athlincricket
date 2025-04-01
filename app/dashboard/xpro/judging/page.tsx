@@ -1,10 +1,7 @@
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 
 export default async function JudgingDashboard() {
   const session = await auth();
@@ -27,35 +24,39 @@ export default async function JudgingDashboard() {
       },
     },
     include: {
-      _count: {
-        select: {
-          submissions: true,
+      submissions: {
+        where: {
+          winner: false,
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
         },
       },
     },
   });
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Select Challenge Winners</h1>
-      
+    <div className="container py-8">
+      <h1 className="text-3xl font-bold mb-6">Judging Dashboard</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {challenges.map((challenge) => (
           <Card key={challenge.id}>
-            <CardHeader>
-              <CardTitle>{challenge.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  <p>Deadline: {formatDistanceToNow(challenge.deadline, { addSuffix: true })}</p>
-                  <p>Submissions: {challenge._count.submissions}</p>
-                </div>
-                <Link href={`/dashboard/xpro/judging/${challenge.id}`}>
-                  <Button className="w-full">Select Winners</Button>
-                </Link>
-              </div>
-            </CardContent>
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-2">{challenge.title}</h2>
+              <p className="text-muted-foreground mb-4">
+                {challenge.submissions.length} submissions
+              </p>
+              <a
+                href={`/dashboard/xpro/judging/${challenge.id}`}
+                className="text-primary hover:underline"
+              >
+                Select Winners →
+              </a>
+            </div>
           </Card>
         ))}
       </div>

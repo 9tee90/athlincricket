@@ -47,6 +47,8 @@ model User {
   emailVerified DateTime?
   image         String?
   isAdmin       Boolean   @default(false)
+  password      String
+  role          Role      @default(player)
   accounts      Account[]
   sessions      Session[]
   challengesCreated Challenge[]  @relation("CreatedChallenges")

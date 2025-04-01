@@ -156,9 +156,9 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2">
-                <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">About</Link></li>
-                <li><Link href="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>
-                <li><Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy</Link></li>
+                <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
+                <li><Link href={{ pathname: "/challenges" } as any} className="text-gray-400 hover:text-white transition-colors">Challenges</Link></li>
+                <li><Link href={{ pathname: "/dashboard" } as any} className="text-gray-400 hover:text-white transition-colors">Dashboard</Link></li>
               </ul>
             </div>
             <div>

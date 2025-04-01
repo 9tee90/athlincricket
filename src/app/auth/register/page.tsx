@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,7 +34,7 @@ export default function RegisterPage() {
         throw new Error(await res.text())
       }
 
-      router.push('/auth/login?registered=true')
+      redirect('/auth/login')
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Something went wrong')
     } finally {
@@ -129,7 +128,7 @@ export default function RegisterPage() {
 
           <div className="text-sm text-center">
             <Link
-              href="/auth/login"
+              href={{ pathname: '/auth/login' }}
               className="font-medium text-primary-600 hover:text-primary-500"
             >
               Already have an account? Sign in

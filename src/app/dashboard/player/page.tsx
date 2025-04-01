@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
 import { FeedbackHelpfulButton } from "./components/feedback-helpful-button"
+import type { Route } from "next"
 
 interface Submission {
   id: string
@@ -64,7 +65,7 @@ export default async function PlayerDashboard() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Dashboard</h1>
         <Button asChild>
-          <Link href="/challenges">Browse Challenges</Link>
+          <Link href={"/challenges" as Route}>Browse Challenges</Link>
         </Button>
       </div>
 
@@ -76,7 +77,7 @@ export default async function PlayerDashboard() {
         <CardContent>
           {openSubmissions.length === 0 ? (
             <p className="text-muted-foreground">
-              You haven't joined any challenges yet. Browse open challenges to get started!
+              You haven&apos;t submitted any entries yet.
             </p>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

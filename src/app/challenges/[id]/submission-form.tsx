@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UploadButton } from "@/components/ui/upload-button";
@@ -13,9 +14,7 @@ interface SubmissionFormProps {
 
 export function SubmissionForm({ challengeId }: SubmissionFormProps) {
   const { data: session } = useSession();
-  const router = useRouter();
   const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   if (!session) {
@@ -24,9 +23,9 @@ export function SubmissionForm({ challengeId }: SubmissionFormProps) {
         <p className="text-muted-foreground">
           Please log in to submit your entry.
         </p>
-        <Button onClick={() => router.push("/auth/login")}>
-          Log In to Submit
-        </Button>
+        <Link href={{ pathname: '/auth/login' }}>
+          <Button>Log In to Submit</Button>
+        </Link>
       </div>
     );
   }
@@ -72,8 +71,8 @@ export function SubmissionForm({ challengeId }: SubmissionFormProps) {
         description: "Your entry has been received!",
       });
 
-      router.refresh();
-    } catch (error) {
+      redirect("/");
+    } catch {
       toast({
         title: "Error",
         description: "Failed to submit your entry. Please try again.",
@@ -87,7 +86,6 @@ export function SubmissionForm({ challengeId }: SubmissionFormProps) {
       <div className="space-y-4">
         <UploadButton
           onSuccess={handleUploadSuccess}
-          isUploading={isUploading}
         />
         {videoUrl && (
           <div className="aspect-video relative rounded-lg overflow-hidden">
@@ -99,12 +97,7 @@ export function SubmissionForm({ challengeId }: SubmissionFormProps) {
           </div>
         )}
       </div>
-
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={!videoUrl || isUploading}
-      >
+      <Button type="submit" disabled={!videoUrl}>
         Submit Entry
       </Button>
     </form>

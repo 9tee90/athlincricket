@@ -20,8 +20,15 @@ export async function requireAuth() {
 
 export async function requireAdmin() {
   const session = await getSession()
-  if (!session?.user?.isAdmin) {
+  if (!session?.user || session.user.role !== "admin") {
     throw new Error("Not authorized")
   }
   return session
+}
+
+export const auth = {
+  getSession,
+  getCurrentUser,
+  requireAuth,
+  requireAdmin,
 } 

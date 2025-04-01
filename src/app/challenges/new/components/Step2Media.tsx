@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { UploadButton } from '@/components/ui/upload-button';
-import { ChallengeFormData, UploadThingResponse } from '@/types';
+import { ChallengeFormData } from '@/types';
 
 interface Step2MediaProps {
   formData: Pick<ChallengeFormData, 'description' | 'videoUrl'>;
@@ -51,19 +51,10 @@ export default function Step2Media({
         </label>
         <div className="mt-1">
           <UploadButton
-            endpoint="videoUploader"
-            onClientUploadComplete={(res: UploadThingResponse[]) => {
-              if (res?.[0]?.fileUrl) {
-                onUpdate({ ...formData, videoUrl: res[0].fileUrl });
-              }
+            onSuccess={(url) => {
+              onUpdate({ ...formData, videoUrl: url });
               setIsUploading(false);
             }}
-            onUploadError={(error: Error) => {
-              console.error('Upload error:', error);
-              setIsUploading(false);
-            }}
-            onUploadBegin={() => setIsUploading(true)}
-            className="ut-button:bg-blue-600 ut-button:text-white ut-button:hover:bg-blue-700"
           />
           {formData.videoUrl && (
             <div className="mt-2 text-sm text-green-600">

@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ChallengeCategory, ChallengeFormData } from '@/types';
+import { ChallengeFormData } from '@/types';
 
 interface Step4ReviewProps {
   formData: ChallengeFormData;

@@ -1,34 +1,22 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+'use client';
+
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
+import { useSession } from "next-auth/react";
+import { api } from "@/trpc/react";
 
-export default async function ChallengePage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const session = await auth();
-  const challenge = await db.challenge.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      submissions: {
-        where: {
-          winner: true,
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
+export default function ChallengePage() {
+  const params = useParams();
+  const { data: session } = useSession();
+  const { data: challenge, isLoading } = api.challenges.get.useQuery({
+    id: params.id as string,
   });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!challenge) {
     return <div>Challenge not found</div>;
@@ -36,48 +24,45 @@ export default async function ChallengePage({
 
   return (
     <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">{challenge.title}</h1>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{challenge.title}</h1>
-        <p className="text-muted-foreground">{challenge.description}</p>
+        <p className="text-lg mb-4">{challenge.description}</p>
+        <p className="text-sm text-muted-foreground">
+          Created by {challenge.creator.name || 'Anonymous'}
+        </p>
         <div className="mt-4 flex gap-2">
           <Badge variant="outline">{challenge.category}</Badge>
           <Badge variant="outline">
-            {challenge.status === "active" ? "Active" : "Closed"}
+            {challenge.status === "active"
+              ? `Ends ${formatDistanceToNow(new Date(challenge.deadline))}`
+              : "Closed"}
           </Badge>
         </div>
       </div>
 
       {challenge.submissions.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Winners</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {challenge.submissions.map((submission) => (
-              <Card key={submission.id}>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg">{submission.user.name}</CardTitle>
-                    <Badge className="bg-yellow-500">🏆 Winner!</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-video relative bg-muted rounded-lg overflow-hidden">
-                    <video
-                      src={submission.videoUrl}
-                      controls
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Submitted {formatDistanceToNow(submission.createdAt, { addSuffix: true })}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Winners</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {challenge.submissions.map((submission) => (
+                <li key={submission.id}>{submission.user.name || 'Anonymous'}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Rest of the challenge content */}
+      {session?.user && session.user.role === "player" && challenge.status === "active" && (
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Submit Your Entry</h2>
+          <p className="text-muted-foreground mb-6">
+            Upload your video to participate in this challenge.
+          </p>
+        </div>
+      )}
     </div>
   );
 } 

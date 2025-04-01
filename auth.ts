@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { Role } from "@prisma/client";
 
 export const {
   handlers: { GET, POST },
@@ -10,7 +11,6 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  adapter: PrismaAdapter(db),
   session: {
     strategy: "jwt",
   },
@@ -50,8 +50,8 @@ export const {
 
         return {
           id: user.id,
-          email: user.email,
-          name: user.name,
+          email: user.email || "",
+          name: user.name || "",
           role: user.role,
         };
       },
@@ -60,17 +60,17 @@ export const {
   callbacks: {
     async session({ token, session }) {
       if (token) {
-        session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.role = token.role;
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.role = token.role as Role;
       }
       return session;
     },
     async jwt({ token, user }) {
       const dbUser = await db.user.findFirst({
         where: {
-          email: token.email,
+          email: token.email || "",
         },
       });
 
@@ -84,8 +84,8 @@ export const {
 
       return {
         id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
+        name: dbUser.name || "",
+        email: dbUser.email || "",
         role: dbUser.role,
       };
     },

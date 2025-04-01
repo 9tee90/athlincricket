@@ -1,29 +1,21 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { redirect } from 'next/navigation';
 
-export default function ChallengesLayout({
-  children,
-}: {
+interface ChallengesLayoutProps {
   children: React.ReactNode;
-}) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+}
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    }
-  }, [status, router]);
+export default function ChallengesLayout({ children }: ChallengesLayoutProps) {
+  const { status } = useSession();
+
+  if (status === 'unauthenticated') {
+    redirect('/auth/login');
+  }
 
   if (status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   return <>{children}</>;

@@ -159,6 +159,39 @@ export default async function XProDashboard() {
           ))}
         </div>
       </section>
+
+      {/* Submission Section */}
+      <section className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Your Submissions</h2>
+        {activeChallenge ? (
+          <div className="space-y-4">
+            {activeChallenge.submissions.map((submission) => (
+              <div key={submission.id} className="bg-white rounded-lg shadow p-6">
+                <div className="aspect-video relative mb-4">
+                  <video
+                    src={submission.videoUrl}
+                    className="w-full h-full object-cover rounded-lg"
+                    controls
+                  />
+                </div>
+                <div className="text-sm text-gray-600">
+                  Submitted {new Date(submission.createdAt).toLocaleDateString()}
+                </div>
+                {submission.poseReviewed && (
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="font-medium mb-2">Coach Feedback</h4>
+                    <p className="text-sm text-gray-600">{submission.poseFeedback}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow p-6 text-center text-gray-600">
+            <p>You haven&apos;t submitted any entries yet.</p>
+          </div>
+        )}
+      </section>
     </div>
   )
 } 

@@ -1,188 +1,99 @@
-import { db } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SubmissionForm } from "./submission-form";
-import { Leaderboard } from "@/components/challenges/leaderboard";
-import { CountdownTimer } from "@/components/ui/countdown-timer";
-import { ShareButton } from "@/components/ui/share-button";
-import { notFound } from "next/navigation";
-import Link from "next/link";
+'use client';
 
-interface ChallengePageProps {
-  params: {
-    id: string;
+import { useParams } from "next/navigation";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns";
+import { useSession } from "next-auth/react";
+import { api } from "@/trpc/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+
+interface Submission {
+  id: string;
+  user: {
+    name: string | null;
   };
 }
 
-export default async function ChallengePage({ params }: ChallengePageProps) {
-  const session = await getServerSession(authOptions);
-  const challenge = await db.challenge.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      creator: {
-        select: {
-          name: true,
-          profileImage: true,
-        },
-      },
-      sponsor: {
-        select: {
-          name: true,
-          profileImage: true,
-        },
-      },
-      submissions: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              profileImage: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
+export default function ChallengePage() {
+  const params = useParams();
+  const { data: session } = useSession();
+  const { data: challenge, isLoading } = api.challenges.get.useQuery({
+    id: params.id as string,
   });
 
-  if (!challenge) {
-    notFound();
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
-  const isExpired = challenge.deadline < new Date();
-  const hasUserSubmitted = session?.user
-    ? challenge.submissions.some((sub) => sub.userId === session.user.id)
-    : false;
-
-  const userSubmission = session?.user
-    ? challenge.submissions.find((sub) => sub.userId === session.user.id)
-    : null;
+  if (!challenge) {
+    return <div>Challenge not found</div>;
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Challenge Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">{challenge.title}</h1>
-            <Badge variant="secondary">{challenge.category}</Badge>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={challenge.creator.profileImage || undefined} />
-                <AvatarFallback>
-                  {challenge.creator.name[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span>Created by {challenge.creator.name}</span>
-            </div>
-            {challenge.sponsor && (
-              <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={challenge.sponsor.profileImage || undefined} />
-                  <AvatarFallback>
-                    {challenge.sponsor.name[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span>Sponsored by {challenge.sponsor.name}</span>
-              </div>
-            )}
-            <CountdownTimer deadline={challenge.deadline} />
-          </div>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">{challenge.title}</h1>
+      <div className="mb-8">
+        <p className="text-lg mb-4">{challenge.description}</p>
+        <div className="flex items-center gap-2">
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={challenge.creator.image || undefined} />
+            <AvatarFallback>
+              {challenge.creator.name?.[0]?.toUpperCase() || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm text-muted-foreground">
+            {challenge.creator.name}
+          </span>
         </div>
-        <ShareButton title={challenge.title} />
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Left Column - Challenge Video & Description */}
-        <div className="space-y-6">
-          <div className="aspect-video relative rounded-lg overflow-hidden">
-            <video
-              src={challenge.videoUrl}
-              className="object-cover w-full h-full"
-              controls
-            />
+        {challenge.sponsor && (
+          <div className="flex items-center gap-2 mt-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={challenge.sponsor.image || undefined} />
+              <AvatarFallback>
+                {challenge.sponsor.name?.[0]?.toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-muted-foreground">
+              Sponsored by {challenge.sponsor.name}
+            </span>
           </div>
-          
-          <Card>
-            <CardHeader>
-              <h2 className="text-xl font-semibold">About This Challenge</h2>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground whitespace-pre-wrap">
-                {challenge.description}
-              </p>
-              {challenge.reward && (
-                <div className="bg-primary/10 p-4 rounded-lg">
-                  <h3 className="font-semibold">Reward</h3>
-                  <p>{challenge.reward}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Submission & Leaderboard */}
-        <div className="space-y-6">
-          {!isExpired ? (
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold">Submit Your Entry</h2>
-              </CardHeader>
-              <CardContent>
-                {!session ? (
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      Please log in to submit your entry.
-                    </p>
-                    <Link href="/auth/login">
-                      <Button className="w-full">Log In to Submit</Button>
-                    </Link>
-                  </div>
-                ) : session.user.role !== "player" ? (
-                  <p className="text-muted-foreground">
-                    Only players can submit entries to challenges.
-                  </p>
-                ) : hasUserSubmitted ? (
-                  <div className="space-y-4">
-                    <p className="text-green-600 font-medium">
-                      Thanks for submitting your entry!
-                    </p>
-                    <div className="aspect-video relative rounded-lg overflow-hidden">
-                      <video
-                        src={userSubmission?.videoUrl}
-                        className="w-full h-full object-cover"
-                        controls
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <SubmissionForm challengeId={challenge.id} />
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="bg-muted">
-              <CardContent className="p-6">
-                <p className="text-center text-muted-foreground">
-                  This challenge has ended. Submissions are no longer accepted.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          <Leaderboard submissions={challenge.submissions} />
+        )}
+        <div className="mt-4 flex gap-2">
+          <Badge variant="outline">{challenge.category}</Badge>
+          <Badge variant="outline">
+            {challenge.status === "active"
+              ? `Ends ${formatDistanceToNow(new Date(challenge.deadline))}`
+              : "Closed"}
+          </Badge>
         </div>
       </div>
+
+      {challenge.submissions.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <h2 className="text-xl font-semibold">Winners</h2>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {challenge.submissions.map((submission: Submission) => (
+                <li key={submission.id}>{submission.user.name}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {session?.user && session.user.role === "player" && challenge.status === "active" && (
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Submit Your Entry</h2>
+          <p className="text-muted-foreground mb-6">
+            Upload your video to participate in this challenge.
+          </p>
+          <Button variant="default">Upload Video</Button>
+        </div>
+      )}
     </div>
   );
 } 

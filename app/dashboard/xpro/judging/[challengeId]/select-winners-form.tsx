@@ -5,23 +5,40 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { api } from "@/trpc/react";
+
+interface Submission {
+  id: string;
+  userId: string;
+  user: {
+    name: string | null;
+  };
+  videoUrl: string;
+  createdAt: string;
+  challengeId: string;
+  poseReviewed: boolean;
+  poseFeedback: string | null;
+  feedbackHelpful: boolean | null;
+  winner: boolean;
+}
 
 interface SelectWinnersFormProps {
   challengeId: string;
-  submissions: {
-    id: string;
-    user: {
-      name: string;
-    };
-    videoUrl: string;
-    createdAt: Date;
-  }[];
+  submissions: Submission[];
 }
 
 export function SelectWinnersForm({ challengeId, submissions }: SelectWinnersFormProps) {
   const router = useRouter();
   const [selectedWinners, setSelectedWinners] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const selectWinners = api.winners.select.useMutation({
+    onSuccess: () => {
+      toast.success("Winners selected successfully!");
+      router.push("/dashboard/xpro/judging");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to select winners. Please try again.");
+    },
+  });
 
   const handleWinnerToggle = (submissionId: string) => {
     setSelectedWinners((prev) => {
@@ -42,29 +59,10 @@ export function SelectWinnersForm({ challengeId, submissions }: SelectWinnersFor
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/challenges/${challengeId}/winners`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          winnerIds: selectedWinners,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to select winners");
-      }
-
-      toast.success("Winners selected successfully!");
-      router.push("/dashboard/xpro/judging");
-    } catch (error) {
-      toast.error("Failed to select winners. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    selectWinners.mutate({
+      challengeId,
+      winnerIds: selectedWinners,
+    });
   };
 
   return (
@@ -87,7 +85,7 @@ export function SelectWinnersForm({ challengeId, submissions }: SelectWinnersFor
               />
             </div>
             <div className="mt-2">
-              <p className="font-medium">{submission.user.name}</p>
+              <p className="font-medium">{submission.user.name || "Anonymous"}</p>
               <p className="text-sm text-muted-foreground">
                 Submitted {new Date(submission.createdAt).toLocaleDateString()}
               </p>
@@ -103,9 +101,9 @@ export function SelectWinnersForm({ challengeId, submissions }: SelectWinnersFor
           </div>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || selectedWinners.length === 0}
+            disabled={selectWinners.status === "pending" || selectedWinners.length === 0}
           >
-            {isSubmitting ? "Saving..." : "Confirm Winners"}
+            {selectWinners.status === "pending" ? "Saving..." : "Confirm Winners"}
           </Button>
         </div>
       </div>
