@@ -16,6 +16,9 @@ NEXTAUTH_SECRET="your-nextauth-secret"
 
 # UploadThing
 UPLOADTHING_SECRET="your-uploadthing-secret"
+
+# Stripe
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="your-stripe-publishable-key"
 ```
 
 ## Deployment
