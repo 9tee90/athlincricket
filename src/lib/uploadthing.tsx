@@ -2,7 +2,7 @@
 
 import React from "react";
 import { generateReactHelpers } from "@uploadthing/react/hooks";
-import { Button } from "@nextui-org/react";
+import { Button } from "@/components/ui/button";
 
 const { useUploadThing } = generateReactHelpers();
 

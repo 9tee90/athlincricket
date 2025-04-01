@@ -1,19 +1,15 @@
 "use client";
 
-import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
-import { UploadButton } from "@uploadthing/react";
 
 interface ProvidersProps {
   children: React.ReactNode;
 }
 
-export default function Providers({ children }: ProvidersProps) {
+export function Providers({ children }: ProvidersProps) {
   return (
     <SessionProvider>
-      <NextUIProvider>
-        {children}
-      </NextUIProvider>
+      {children}
     </SessionProvider>
   );
 } 
