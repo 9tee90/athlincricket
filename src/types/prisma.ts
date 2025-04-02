@@ -1,4 +1,4 @@
-export type Role = "USER" | "COACH" | "ADMIN" | "player" | "xpro"
+export type Role = "USER" | "COACH" | "ADMIN" | "player" | "xpro" | "sponsor"
 
 export interface User {
   id: string
