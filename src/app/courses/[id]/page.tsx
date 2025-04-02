@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { CourseHeader } from "@/components/courses/CourseHeader"
 import { LessonCard } from "@/components/courses/LessonCard"
 import { CoachBadge } from "@/components/courses/CoachBadge"
-import { Course, User, Lesson } from "@/types/prisma"
+import { Course, Lesson } from "@/types/prisma"
 import { PurchaseButton } from "@/components/courses/PurchaseButton"
 
 interface CoursePageProps {
@@ -47,7 +47,7 @@ export default async function CoursePage({ params, searchParams }: CoursePagePro
 
   // User has access if they are the coach or have purchased the course
   const hasAccess = session?.user?.id === course.coachId || 
-    course.buyers.some((buyer: User) => buyer.id === session?.user?.id)
+    course.buyers.some(buyer => buyer.id === session?.user?.id)
 
   return (
     <div className="container mx-auto py-8">
