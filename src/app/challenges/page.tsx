@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { getAppConfig } from "@/lib/edge-config";
-import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
@@ -35,10 +34,17 @@ function isValidUrl(url: string) {
 }
 
 export default async function ChallengesPage() {
-  const config = await getAppConfig();
+  // Try to get config but don't block if it fails
+  const config = await getAppConfig().catch(() => null);
   
-  if (!config?.features.challenges) {
-    redirect('/');
+  // Only redirect if we successfully got config and features are disabled
+  if (config && !config.features.challenges) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">Challenges are currently disabled</h1>
+        <p>This feature is temporarily unavailable. Please check back later.</p>
+      </div>
+    );
   }
 
   const challenges = await db.challenge.findMany({

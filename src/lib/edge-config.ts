@@ -1,6 +1,10 @@
 import { createClient } from '@vercel/edge-config';
 
-export const edgeConfig = createClient('ecfg_2og98beb6f41mm20oyeaeeuu6zhh');
+if (!process.env.EDGE_CONFIG) {
+  throw new Error('EDGE_CONFIG environment variable is not set');
+}
+
+export const edgeConfig = createClient(process.env.EDGE_CONFIG);
 
 export type AppConfig = {
   maintenanceMode: boolean;
