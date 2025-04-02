@@ -1,0 +1,10 @@
+{
+  "env": {
+    "DATABASE_URL": "postgresql://user:password@host:port/database?sslmode=require",
+    "DIRECT_URL": "postgresql://user:password@host:port/database?sslmode=require",
+    "NEXTAUTH_URL": "https://your-domain.vercel.app",
+    "NEXTAUTH_SECRET": "your-nextauth-secret",
+    "UPLOADTHING_SECRET": "your-uploadthing-secret",
+    "UPLOADTHING_APP_ID": "your-uploadthing-app-id"
+  }
+} 

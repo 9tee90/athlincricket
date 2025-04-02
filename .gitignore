@@ -25,20 +25,28 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
 .env
+.env*.local
+.env.production
+.env.development
+.env.test
 
 # vercel
 .vercel
+vercel.json
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
+# Prisma
+/prisma/dev.db
+/prisma/dev.db-journal
+
 # IDE
 .vscode/
 .idea/
 
-.vercel
-
-.vercel
+# Logs
+logs
+*.log
