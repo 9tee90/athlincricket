@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 
 type ChecklistProps = {
   checklist: {
@@ -8,6 +9,13 @@ type ChecklistProps = {
     verifiedCert: boolean;
   };
 };
+
+const routes = {
+  videos: "/dashboard/coach/videos",
+  players: "/dashboard/coach/players",
+  certification: "/dashboard/coach/certification",
+  newCourse: "/dashboard/coach/courses/new",
+} as const;
 
 export default function SetupChecklist({ checklist }: ChecklistProps) {
   const allComplete =
@@ -22,17 +30,17 @@ export default function SetupChecklist({ checklist }: ChecklistProps) {
           <ChecklistItem 
             label="Upload at least 3 training videos" 
             complete={checklist.uploadedVideos}
-            href="/dashboard/coach/videos"
+            href={routes.videos}
           />
           <ChecklistItem 
             label="Invite at least 3 players" 
             complete={checklist.invitedPlayers}
-            href="/dashboard/coach/players"
+            href={routes.players}
           />
           <ChecklistItem 
             label="Verify your coaching certification" 
             complete={checklist.verifiedCert}
-            href="/dashboard/coach/certification"
+            href={routes.certification}
           />
         </div>
       </Card>
@@ -44,9 +52,11 @@ export default function SetupChecklist({ checklist }: ChecklistProps) {
             ? "bg-green-600 hover:bg-green-700"
             : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
-        href={allComplete ? "/dashboard/coach/courses/new" : undefined}
+        asChild
       >
-        {allComplete ? "✅ Create Your First Course" : "🔒 Complete Steps to Unlock"}
+        <Link href={allComplete ? routes.newCourse : "#"}>
+          {allComplete ? "✅ Create Your First Course" : "🔒 Complete Steps to Unlock"}
+        </Link>
       </Button>
     </div>
   );
@@ -62,14 +72,14 @@ function ChecklistItem({
   href: string;
 }) {
   return (
-    <a 
-      href={href}
+    <Link 
+      href={href as any}
       className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
     >
       <span className={`text-xl ${complete ? "text-green-600" : "text-gray-400"}`}>
         {complete ? "✅" : "⭕"}
       </span>
       <span className={complete ? "text-gray-600" : "text-gray-500"}>{label}</span>
-    </a>
+    </Link>
   );
 } 

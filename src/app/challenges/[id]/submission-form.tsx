@@ -85,7 +85,8 @@ export function SubmissionForm({ challengeId }: SubmissionFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <UploadButton
-          onSuccess={handleUploadSuccess}
+          onUploadComplete={handleUploadSuccess}
+          endpoint="submissionVideo"
         />
         {videoUrl && (
           <div className="aspect-video relative rounded-lg overflow-hidden">

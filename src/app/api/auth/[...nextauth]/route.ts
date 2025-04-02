@@ -35,7 +35,8 @@ const handler = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
-          isAdmin: user.role === 'admin'
+          isAdmin: user.role === 'admin',
+          isVerifiedCoach: user.isVerifiedCoach
         }
       },
     }),
@@ -45,6 +46,7 @@ const handler = NextAuth({
       if (user) {
         token.role = user.role
         token.isAdmin = user.role === 'admin'
+        token.isVerifiedCoach = user.isVerifiedCoach
       }
       return token
     },
@@ -52,6 +54,7 @@ const handler = NextAuth({
       if (session.user) {
         session.user.role = token.role
         session.user.isAdmin = token.role === 'admin'
+        session.user.isVerifiedCoach = token.isVerifiedCoach
       }
       return session
     },

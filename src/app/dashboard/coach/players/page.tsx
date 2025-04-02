@@ -7,6 +7,13 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { invitePlayer, removePlayer } from "./actions";
 
+interface Player {
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: string;
+}
+
 export default async function PlayersPage() {
   const session = await getServerSession(authOptions);
 
@@ -15,14 +22,20 @@ export default async function PlayersPage() {
   }
 
   const invitedPlayers = await prisma.user.findMany({
-    where: { coachedBy: { id: session.user.id } },
+    where: {
+      coachedBy: {
+        some: {
+          id: session.user.id
+        }
+      }
+    },
     select: {
       id: true,
       name: true,
       email: true,
       role: true,
     },
-  });
+  }) as Player[];
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -51,10 +51,11 @@ export default function Step2Media({
         </label>
         <div className="mt-1">
           <UploadButton
-            onSuccess={(url) => {
+            onUploadComplete={(url) => {
               onUpdate({ ...formData, videoUrl: url });
               setIsUploading(false);
             }}
+            endpoint="challengeVideo"
           />
           {formData.videoUrl && (
             <div className="mt-2 text-sm text-green-600">

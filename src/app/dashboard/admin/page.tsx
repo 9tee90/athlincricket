@@ -34,10 +34,10 @@ export default async function AdminDashboard() {
               <Link href="/dashboard/coach/courses">View All Courses</Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/dashboard/xpro/challenges">View All Challenges</Link>
+              <Link href="/challenges">View All Challenges</Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/dashboard/sponsor/opportunities">View All Opportunities</Link>
+              <Link href="/dashboard/sponsor">View All Opportunities</Link>
             </Button>
           </div>
         </Card>
