@@ -5,7 +5,7 @@ import { db } from "./db"
 import { compare } from "bcryptjs"
 import GoogleProvider from "next-auth/providers/google"
 
-type Role = 'admin' | 'xpro' | 'sponsor' | 'player'
+type Role = 'admin' | 'xpro' | 'sponsor' | 'player' | 'coach'
 
 declare module "next-auth" {
   interface User {
@@ -14,6 +14,7 @@ declare module "next-auth" {
     name: string | null
     role: Role
     isAdmin: boolean
+    isVerifiedCoach: boolean
   }
   
   interface Session {
@@ -23,7 +24,20 @@ declare module "next-auth" {
       name: string | null
       role: Role
       isAdmin: boolean
+      isVerifiedCoach: boolean
     }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string
+    name: string | null
+    email: string | null
+    picture: string | null
+    role: Role
+    isAdmin: boolean
+    isVerifiedCoach: boolean
   }
 }
 
@@ -83,7 +97,8 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role,
-            isAdmin
+            isAdmin,
+            isVerifiedCoach: user.isVerifiedCoach
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -107,6 +122,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string;
         session.user.image = token.picture as string;
         session.user.role = token.role as Role;
+        session.user.isVerifiedCoach = token.isVerifiedCoach as boolean;
       }
 
       return session;
@@ -132,6 +148,7 @@ export const authOptions: NextAuthOptions = {
         email: dbUser.email,
         picture: dbUser.image,
         role: dbUser.role as Role,
+        isVerifiedCoach: dbUser.isVerifiedCoach
       };
     },
   },

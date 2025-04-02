@@ -42,21 +42,29 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  isAdmin       Boolean   @default(false)
-  password      String
-  role          Role      @default(player)
-  accounts      Account[]
-  sessions      Session[]
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  isAdmin         Boolean   @default(false)
+  password        String
+  role            Role      @default(player)
+  isVerifiedCoach Boolean   @default(false)
+  accounts        Account[]
+  sessions        Session[]
   challengesCreated Challenge[]  @relation("CreatedChallenges")
   sponsoredChallenges Challenge[] @relation("SponsoredChallenges")
-  sponsorships      Sponsorship[] @relation("SponsorRelation")
-  sponsoredBy      Sponsorship[] @relation("XProRelation")
+  sponsorships     Sponsorship[] @relation("SponsorRelation")
+  sponsoredBy       Sponsorship[] @relation("XProRelation")
   submissions       Submission[]
+  videos            Video[]
+  invitedPlayers    User[]    @relation("PlayerInvites")
+  coachedBy         User[]    @relation("PlayerInvites")
+  coachId           String?
+  courses           Course[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model VerificationToken {
@@ -72,6 +80,7 @@ enum Role {
   xpro
   sponsor
   admin
+  coach
 }
 
 model Challenge {
@@ -135,4 +144,45 @@ enum SponsorshipStatus {
   pending
   accepted
   rejected
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  url         String
+  coach       User     @relation(fields: [coachId], references: [id])
+  coachId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  coachId     String
+  introUrl    String
+  bannerUrl   String?
+  lessons     Lesson[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  coach       User     @relation(fields: [coachId], references: [id])
+
+  @@index([coachId])
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  courseId  String
+  title     String
+  videoUrl  String
+  notes     String?
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
 }

@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { api } from '@/trpc/react';
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "sonner"
+import { UploadThingProvider } from "@/components/providers/uploadthing-provider";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -27,8 +28,10 @@ export function Providers({ children }: ProvidersProps) {
     <SessionProvider>
       <api.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster />
+          <UploadThingProvider>
+            {children}
+            <Toaster />
+          </UploadThingProvider>
         </QueryClientProvider>
       </api.Provider>
     </SessionProvider>

@@ -67,3 +67,5 @@ logs
 *.key
 *.crt
 *.cert
+
+.vercel

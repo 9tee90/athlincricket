@@ -4,7 +4,7 @@ import { hash } from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  const password = await hash('password123', 10);
+  const password = await hash('password123', 12);
 
   // Create admin user
   await prisma.user.upsert({
@@ -28,7 +28,6 @@ async function main() {
       name: 'XPro User',
       password,
       role: 'xpro',
-      isAdmin: false,
     },
   });
 
@@ -41,7 +40,6 @@ async function main() {
       name: 'Sponsor User',
       password,
       role: 'sponsor',
-      isAdmin: false,
     },
   });
 
@@ -54,7 +52,6 @@ async function main() {
       name: 'Player User',
       password,
       role: 'player',
-      isAdmin: false,
     },
   });
 }

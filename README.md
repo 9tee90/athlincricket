@@ -20,6 +20,12 @@ A platform where cricket legends (X-Pros) train the next generation through inte
   - Role-specific dashboards
   - Profile management
 
+  - **Coach Onboarding System**
+  - Coaches must upload 3 training videos, invite 3 players, and verify certification
+  - Unlocks ability to create structured courses on the platform
+  - Coaches can invite players via unique referral link
+  - Verified coaches receive a badge for trust and visibility
+
 ## Tech Stack
 
 - **Frontend**: Next.js 14, React, TypeScript
