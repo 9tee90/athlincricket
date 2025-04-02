@@ -1,4 +1,4 @@
-export type Role = "USER" | "COACH" | "ADMIN" | "player" | "xpro" | "sponsor"
+export type Role = "user" | "coach" | "admin" | "player" | "xpro" | "sponsor"
 
 export interface User {
   id: string
@@ -38,6 +38,7 @@ export interface Lesson {
   description: string
   videoUrl: string
   order: number
+  notes: string | null
   createdAt: Date
   updatedAt: Date
 } 

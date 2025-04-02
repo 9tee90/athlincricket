@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     }
 
     // Check if user already purchased the course
-    if (course.buyers.some((buyer: User) => buyer.id === session.user.id)) {
+    if (course.buyers.some(buyer => buyer.id === session.user.id)) {
       return new NextResponse("Already purchased", { status: 400 })
     }
 
