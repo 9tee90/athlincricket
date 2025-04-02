@@ -33,7 +33,11 @@ export default async function CoursePage({ params, searchParams }: CoursePagePro
           order: 'asc',
         },
       },
-      buyers: true,
+      buyers: {
+        include: {
+          purchasedCourses: true
+        }
+      },
     },
   }) as Course | null
 
