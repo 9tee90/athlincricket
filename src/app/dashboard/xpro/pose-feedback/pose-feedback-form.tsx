@@ -6,28 +6,31 @@ import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
+import { TRPCClientErrorLike } from "@trpc/client";
+import { DefaultErrorShape } from "@trpc/server";
 
 interface PoseFeedbackFormProps {
   submissionId: string;
+  initialFeedback?: string | null;
 }
 
-export function PoseFeedbackForm({ submissionId }: PoseFeedbackFormProps) {
-  const [feedback, setFeedback] = useState('');
+export function PoseFeedbackForm({ submissionId, initialFeedback }: PoseFeedbackFormProps) {
   const router = useRouter();
+  const [feedback, setFeedback] = useState(initialFeedback || "");
   
   const submitFeedback = api.submissions.poseFeedback.useMutation({
     onSuccess: () => {
       toast.success("Feedback submitted successfully!");
-      router.refresh();
+      router.replace("/dashboard/xpro/pose-feedback");
     },
-    onError: () => {
-      toast.error("Failed to submit feedback. Please try again.");
+    onError: (error: TRPCClientErrorLike<DefaultErrorShape>) => {
+      toast.error(error.message || "Failed to submit feedback. Please try again.");
     },
   });
 
   const handleSubmit = async () => {
     if (!feedback.trim()) {
-      toast.error("Please enter feedback before submitting");
+      toast.error("Please provide feedback");
       return;
     }
 
@@ -45,17 +48,17 @@ export function PoseFeedbackForm({ submissionId }: PoseFeedbackFormProps) {
   return (
     <div className="space-y-4">
       <Textarea
-        placeholder="Enter pose feedback..."
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
-        className="mb-4"
+        placeholder="Enter your feedback here..."
+        className="min-h-[200px]"
       />
       <Button
         onClick={handleSubmit}
         className="w-full"
-        disabled={submitFeedback.status === "pending" || !feedback.trim()}
+        disabled={submitFeedback.status === "loading" || !feedback.trim()}
       >
-        {submitFeedback.status === "pending" ? 'Submitting...' : 'Mark as Reviewed'}
+        {submitFeedback.status === "loading" ? 'Submitting...' : 'Mark as Reviewed'}
       </Button>
     </div>
   );

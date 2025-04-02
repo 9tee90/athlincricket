@@ -1,16 +1,23 @@
-import NextAuth from "next-auth"
+import "next-auth"
+
+type Role = 'admin' | 'xpro' | 'sponsor' | 'player'
 
 declare module "next-auth" {
   interface User {
-    role: "player" | "xpro" | "sponsor" | "admin"
+    id: string
+    email: string | null
+    name: string | null
+    role: Role
     isAdmin: boolean
   }
 
   interface Session {
     user: User & {
       id: string
-      email: string
-      name: string
+      email: string | null
+      name: string | null
+      role: Role
+      isAdmin: boolean
     }
   }
 }

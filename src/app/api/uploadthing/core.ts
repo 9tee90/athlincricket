@@ -1,7 +1,6 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from './auth';
-import { generateReactHelpers } from "@uploadthing/react";
+import { authOptions } from '@/lib/auth';
 
 const f = createUploadthing();
 
@@ -25,5 +24,4 @@ export const uploadRouter = {
     }),
 } satisfies FileRouter;
 
-export type OurFileRouter = typeof uploadRouter;
-export const { useUploadThing, uploadFiles } = generateReactHelpers<OurFileRouter>(); 
+export type OurFileRouter = typeof uploadRouter; 

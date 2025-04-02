@@ -107,9 +107,9 @@ export function SelectWinnersForm({ challengeId, submissions }: SelectWinnersFor
           </div>
           <Button
             onClick={handleSubmit}
-            disabled={selectWinners.status === "pending" || selectedWinners.length === 0}
+            disabled={selectWinners.status === "loading" || selectedWinners.length === 0}
           >
-            {selectWinners.status === "pending" ? "Saving..." : "Confirm Winners"}
+            {selectWinners.status === "loading" ? "Saving..." : "Confirm Winners"}
           </Button>
         </div>
       </div>

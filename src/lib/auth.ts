@@ -1,9 +1,10 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import { NextAuthOptions, getServerSession } from "next-auth"
+import { NextAuthOptions, getServerSession, User } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "./prisma"
 import { compare } from "bcryptjs"
-import { Role } from "@prisma/client"
+
+type Role = 'admin' | 'xpro' | 'sponsor' | 'player'
 
 declare module "next-auth" {
   interface User {
@@ -11,6 +12,7 @@ declare module "next-auth" {
     email: string | null
     name: string | null
     role: Role
+    isAdmin: boolean
   }
   
   interface Session {
@@ -19,6 +21,7 @@ declare module "next-auth" {
       email: string | null
       name: string | null
       role: Role
+      isAdmin: boolean
     }
   }
 }
@@ -37,28 +40,37 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email,
+            },
+          });
 
-        if (!user) {
+          if (!user) {
+            return null;
+          }
+
+          const isPasswordValid = await compare(credentials.password, user.password);
+
+          if (!isPasswordValid) {
+            return null;
+          }
+
+          const role = user.role as Role;
+          const isAdmin = role === 'admin';
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role,
+            isAdmin
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
           return null;
         }
-
-        const isPasswordValid = await compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
       },
     }),
   ],
@@ -72,6 +84,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as Role;
         session.user.email = token.email as string | null;
         session.user.name = token.name as string | null;
+        session.user.isAdmin = token.role === 'admin';
       }
       return session;
     },
@@ -80,6 +93,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.email = user.email;
         token.name = user.name;
+        token.isAdmin = user.role === 'admin';
       }
       return token;
     },
