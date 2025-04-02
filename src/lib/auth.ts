@@ -1,8 +1,9 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { NextAuthOptions, getServerSession, User } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { prisma } from "./prisma"
+import { db } from "./db"
 import { compare } from "bcryptjs"
+import GoogleProvider from "next-auth/providers/google"
 
 type Role = 'admin' | 'xpro' | 'sponsor' | 'player'
 
@@ -26,8 +27,25 @@ declare module "next-auth" {
   }
 }
 
+// Ensure NEXTAUTH_URL is valid
+const getBaseUrl = () => {
+  if (process.env.NEXTAUTH_URL) {
+    try {
+      return new URL(process.env.NEXTAUTH_URL).origin;
+    } catch {
+      console.warn('Invalid NEXTAUTH_URL, falling back to default');
+    }
+  }
+  
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  return 'http://localhost:3000';
+};
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -41,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await prisma.user.findUnique({
+          const user = await db.user.findUnique({
             where: {
               email: credentials.email,
             },
@@ -73,34 +91,56 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+    }),
   ],
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/auth/login",
   },
   callbacks: {
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub as string;
+    async session({ token, session }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.image = token.picture as string;
         session.user.role = token.role as Role;
-        session.user.email = token.email as string | null;
-        session.user.name = token.name as string | null;
-        session.user.isAdmin = token.role === 'admin';
       }
+
       return session;
     },
     async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-        token.email = user.email;
-        token.name = user.name;
-        token.isAdmin = user.role === 'admin';
+      const dbUser = await db.user.findFirst({
+        where: {
+          email: token.email ?? '',
+        },
+      });
+
+      if (!dbUser) {
+        if (user) {
+          token.id = user.id;
+        }
+        return token;
       }
-      return token;
+
+      return {
+        ...token,
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        picture: dbUser.image,
+        role: dbUser.role as Role,
+      };
     },
   },
   session: {
     strategy: "jwt",
   },
 }
+
+// Use the base URL in your configuration
+export const baseUrl = getBaseUrl();
 
 export const auth = () => getServerSession(authOptions) 

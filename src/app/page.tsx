@@ -3,7 +3,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Star, Trophy, Users, Play, Award, Target } from "lucide-react";
+import { ArrowRight, Star, Trophy, Play } from "lucide-react";
+import { Metadata } from "next"
+import { Suspense } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { getAppConfig } from "@/lib/edge-config"
 
 const features = [
   {

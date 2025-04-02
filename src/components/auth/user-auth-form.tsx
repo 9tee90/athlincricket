@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Select } from "@/components/ui/select";
+import { Icons } from "@/components/icons";
 
-interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -146,9 +146,8 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             )}
           </div>
           <Button disabled={isLoading}>
-            {isLoading && (
-              <span>{isRegister ? "Creating account..." : "Signing in..."}</span>
-            )}
+            {isLoading && <Icons.spinner className="mr-2" />}
+            {isLoading && <span>{isRegister ? "Creating account..." : "Signing in..."}</span>}
             {!isLoading && <span>{isRegister ? "Create account" : "Sign in"}</span>}
           </Button>
         </div>
