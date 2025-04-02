@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import { compare } from "bcrypt"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
+import type { User } from "next-auth"
 
 const handler = NextAuth({
   providers: [
@@ -11,7 +12,7 @@ const handler = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Missing credentials")
         }
