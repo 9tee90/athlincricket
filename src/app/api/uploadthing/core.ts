@@ -6,20 +6,20 @@ const f = createUploadthing();
 
 export const uploadRouter = {
   videoUploader: f({ video: { maxFileSize: '512MB', maxFileCount: 1 } })
-    .middleware(async () => {
+    .middleware(async ({ req }) => {
       const session = await getServerSession(authOptions);
 
-      if (!session?.user) {
-        throw new Error('Unauthorized');
+      if (!session?.user?.id) {
+        throw new Error("Unauthorized");
       }
 
-      if (!['xpro', 'player'].includes(session.user.role)) {
-        throw new Error('Only players and xpros can upload videos');
+      if (!session.user.role || !["xpro", "player"].includes(session.user.role)) {
+        throw new Error("Only XPros and Players can upload videos");
       }
 
       return { userId: session.user.id };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ file }) => {
       return { url: file.url };
     }),
 } satisfies FileRouter;
