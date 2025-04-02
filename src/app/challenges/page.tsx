@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { getAppConfig } from "@/lib/edge-config";
+import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +35,12 @@ function isValidUrl(url: string) {
 }
 
 export default async function ChallengesPage() {
+  const config = await getAppConfig();
+  
+  if (!config?.features.challenges) {
+    redirect('/');
+  }
+
   const challenges = await db.challenge.findMany({
     where: {
       status: "active",
