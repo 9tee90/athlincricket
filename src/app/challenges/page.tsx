@@ -4,6 +4,14 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import type { Challenge } from "@prisma/client";
+
+export const dynamic = 'force-dynamic';
+
+type ChallengeWithRelations = Challenge & {
+  creator: { name: string | null };
+  sponsor: { name: string | null } | null;
+};
 
 export default async function ChallengesPage() {
   const challenges = await db.challenge.findMany({
@@ -34,7 +42,7 @@ export default async function ChallengesPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Active Challenges</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {challenges.map((challenge) => (
+        {challenges.map((challenge: ChallengeWithRelations) => (
           <Card key={challenge.id} className="flex flex-col">
             <CardHeader>
               <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
