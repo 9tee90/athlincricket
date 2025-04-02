@@ -1,2 +1,0 @@
-postgres://athlincricket_owner:npg_Z3s5KIwTQeYn@ep-spring-sea-abpzbjrr-pooler.eu-west-2.aws.neon.tech/athlincricket
-postgres://athlincricket_owner:npg_Z3s5KIwTQeYn@ep-spring-sea-abpzbjrr.eu-west-2.aws.neon.tech/athlincricket 

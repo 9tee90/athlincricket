@@ -9,17 +9,27 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 })
 
 export async function POST(req: Request) {
-  const session = await auth()
-  if (!session?.user) {
-    return new NextResponse("Unauthorized", { status: 401 })
-  }
-
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return new NextResponse("Unauthorized", { status: 401 })
+    }
+
     const { courseId } = await req.json()
+    if (!courseId) {
+      return new NextResponse("Course ID is required", { status: 400 })
+    }
+
     const course = await prisma.course.findUnique({
-      where: { id: courseId },
+      where: {
+        id: courseId,
+      },
       include: {
-        buyers: true,
+        buyers: {
+          include: {
+            purchasedCourses: true
+          }
+        }
       },
     })
 
@@ -32,33 +42,34 @@ export async function POST(req: Request) {
       return new NextResponse("Already purchased", { status: 400 })
     }
 
+    // Create Stripe checkout session
     const stripeSession = await stripe.checkout.sessions.create({
-      mode: "payment",
       payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
             currency: "usd",
-            product_data: { 
+            product_data: {
               name: course.title,
               description: course.description,
             },
-            unit_amount: 1000, // $10 for now
+            unit_amount: 2999, // $29.99 in cents
           },
           quantity: 1,
         },
       ],
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}?canceled=true`,
       metadata: {
         courseId,
         userId: session.user.id,
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}?canceled=true`,
     })
 
     return NextResponse.json({ url: stripeSession.url })
   } catch (error) {
-    console.error("Stripe checkout error:", error)
+    console.error("[STRIPE_CHECKOUT]", error)
     return new NextResponse("Internal error", { status: 500 })
   }
 } 
