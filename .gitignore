@@ -50,3 +50,20 @@ next-env.d.ts
 # Logs
 logs
 *.log
+
+# environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# database
+*.db
+*.sqlite
+*.sqlite3
+
+# secrets
+*.pem
+*.key
+*.crt
+*.cert

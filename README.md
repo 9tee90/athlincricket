@@ -90,3 +90,17 @@ A platform where cricket legends (X-Pros) train the next generation through inte
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## ⚠️ Security Warning
+
+**IMPORTANT:** Never commit sensitive information to the repository:
+- Database credentials (DATABASE_URL, DIRECT_URL)
+- API keys
+- Authentication secrets
+- Environment files (.env, .env.local, etc.)
+
+Always use environment variables for sensitive data:
+1. Copy `.env.example` to `.env.local` for local development
+2. Set environment variables in your deployment platform (e.g., Vercel)
+3. Never commit `.env` files containing real credentials
+4. Add `.env*` to `.gitignore` (except `.env.example`)

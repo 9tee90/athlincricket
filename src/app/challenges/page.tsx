@@ -23,6 +23,15 @@ interface ChallengeWithRelations {
   sponsor: { name: string | null } | null;
 }
 
+function isValidUrl(url: string) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export default async function ChallengesPage() {
   const challenges = await db.challenge.findMany({
     where: {
@@ -56,11 +65,17 @@ export default async function ChallengesPage() {
           <Card key={challenge.id} className="flex flex-col">
             <CardHeader>
               <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
-                <video
-                  src={challenge.videoUrl}
-                  className="object-cover w-full h-full"
-                  poster="/placeholder.png"
-                />
+                {isValidUrl(challenge.videoUrl) ? (
+                  <video
+                    src={challenge.videoUrl}
+                    className="object-cover w-full h-full"
+                    poster="/placeholder.png"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground">Video unavailable</p>
+                  </div>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">{challenge.title}</h2>
