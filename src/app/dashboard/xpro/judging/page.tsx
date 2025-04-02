@@ -1,16 +1,17 @@
+import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/card";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function JudgingDashboard() {
-  const session = await auth();
+  const session = await getServerSession(authOptions);
   
   if (!session?.user || session.user.role !== "xpro") {
-    redirect("/");
+    redirect("/auth/signin");
   }
 
-  const challenges = await db.challenge.findMany({
+  const challenges = await prisma.challenge.findMany({
     where: {
       creatorId: session.user.id,
       status: "active",

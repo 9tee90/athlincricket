@@ -1,18 +1,9 @@
 import NextAuth from "next-auth"
-import type { NextAuthOptions } from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
+import { compare } from "bcrypt"
 import CredentialsProvider from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
-import { Role } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 
-export const authOptions: NextAuthOptions = {
-  session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/login",
-  },
+const handler = NextAuth({
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -22,71 +13,53 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null
+          throw new Error("Missing credentials")
         }
 
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
+          where: { email: credentials.email },
         })
 
         if (!user) {
-          return null
+          throw new Error("Invalid credentials")
         }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
+        const isValid = await compare(credentials.password, user.password)
 
-        if (!isPasswordValid) {
-          return null
+        if (!isValid) {
+          throw new Error("Invalid credentials")
         }
 
         return {
           id: user.id,
-          email: user.email || "",
-          name: user.name || "",
+          name: user.name,
+          email: user.email,
           role: user.role,
+          isAdmin: user.isAdmin,
         }
       },
     }),
   ],
   callbacks: {
-    async session({ token, session }) {
-      if (token) {
-        session.user.id = token.id as string
-        session.user.name = token.name as string
-        session.user.email = token.email as string
-        session.user.role = token.role as Role
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+        token.isAdmin = user.isAdmin
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.role = token.role
+        session.user.isAdmin = token.isAdmin
       }
       return session
     },
-    async jwt({ token, user }) {
-      const dbUser = await prisma.user.findFirst({
-        where: {
-          email: token.email || "",
-        },
-      })
-
-      if (!dbUser) {
-        if (user) {
-          token.id = user?.id
-          token.role = user?.role
-        }
-        return token
-      }
-
-      return {
-        id: dbUser.id,
-        name: dbUser.name || "",
-        email: dbUser.email || "",
-        role: dbUser.role,
-      }
-    },
   },
-}
+  pages: {
+    signIn: "/auth/login",
+    newUser: "/auth/register",
+  },
+})
 
-const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST } 

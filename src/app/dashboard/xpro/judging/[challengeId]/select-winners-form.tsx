@@ -1,100 +1,118 @@
-import { prisma } from "@/lib/prisma"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChallengeStatus } from "@prisma/client"
+"use client";
 
-interface SelectWinnersFormProps {
-  challengeId: string
-  submissions: {
-    id: string
-    userId: string
-    user: {
-      name: string | null
-    }
-  }[]
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { api } from "@/trpc/react";
+
+interface Submission {
+  id: string;
+  userId: string;
+  user: {
+    name: string | null;
+  };
+  videoUrl: string;
+  createdAt: string;
+  challengeId: string;
+  poseReviewed: boolean;
+  poseFeedback: string | null;
+  feedbackHelpful: boolean | null;
+  winner: boolean;
 }
 
-export async function SelectWinnersForm({ challengeId, submissions }: SelectWinnersFormProps) {
-  async function selectWinners(formData: FormData) {
-    "use server"
-    
-    const firstPlace = formData.get("firstPlace") as string
-    const secondPlace = formData.get("secondPlace") as string
-    const thirdPlace = formData.get("thirdPlace") as string
+interface SelectWinnersFormProps {
+  challengeId: string;
+  submissions: Submission[];
+}
 
-    // Update the challenge status to closed
-    await prisma.challenge.update({
-      where: { id: challengeId },
-      data: {
-        status: ChallengeStatus.closed,
-      },
-    })
+export function SelectWinnersForm({ challengeId, submissions }: SelectWinnersFormProps) {
+  const router = useRouter();
+  const [selectedWinners, setSelectedWinners] = useState<string[]>([]);
+  const selectWinners = api.winners.select.useMutation({
+    onSuccess: () => {
+      toast.success("Winners selected successfully!");
+      router.replace("/dashboard/xpro/judging");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to select winners. Please try again.");
+    },
+  });
 
-    // Mark the winning submissions
-    await prisma.submission.updateMany({
-      where: {
-        id: {
-          in: [firstPlace, secondPlace, thirdPlace],
-        },
-      },
-      data: {
-        winner: true,
-      },
-    })
-  }
+  const handleWinnerToggle = (submissionId: string) => {
+    setSelectedWinners((prev) => {
+      if (prev.includes(submissionId)) {
+        return prev.filter((id) => id !== submissionId);
+      }
+      if (prev.length >= 3) {
+        toast.error("You can only select up to 3 winners");
+        return prev;
+      }
+      return [...prev, submissionId];
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (selectedWinners.length === 0) {
+      toast.error("Please select at least one winner");
+      return;
+    }
+
+    try {
+      selectWinners.mutate({
+        challengeId,
+        winnerIds: selectedWinners,
+      });
+    } catch (error) {
+      console.error("Error selecting winners:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    }
+  };
 
   return (
-    <form action={selectWinners} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="firstPlace">First Place</Label>
-        <Select name="firstPlace" required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select first place" />
-          </SelectTrigger>
-          <SelectContent>
-            {submissions.map((submission) => (
-              <SelectItem key={submission.id} value={submission.id}>
-                {submission.user.name || 'Anonymous'}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {submissions.map((submission) => (
+          <div key={submission.id} className="relative">
+            <div className="absolute top-4 right-4 z-10">
+              <Checkbox
+                checked={selectedWinners.includes(submission.id)}
+                onCheckedChange={() => handleWinnerToggle(submission.id)}
+                className="h-6 w-6 border-2"
+              />
+            </div>
+            <div className="aspect-video relative bg-muted rounded-lg overflow-hidden">
+              <video
+                src={submission.videoUrl}
+                controls
+                className="w-full h-full object-cover"
+                preload="metadata"
+              />
+            </div>
+            <div className="mt-2">
+              <p className="font-medium">{submission.user.name || "Anonymous"}</p>
+              <p className="text-sm text-muted-foreground">
+                Submitted {new Date(submission.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="secondPlace">Second Place</Label>
-        <Select name="secondPlace" required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select second place" />
-          </SelectTrigger>
-          <SelectContent>
-            {submissions.map((submission) => (
-              <SelectItem key={submission.id} value={submission.id}>
-                {submission.user.name || 'Anonymous'}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4">
+        <div className="container mx-auto flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {selectedWinners.length} of 3 winners selected
+          </div>
+          <Button
+            onClick={handleSubmit}
+            disabled={selectWinners.status === "pending" || selectedWinners.length === 0}
+          >
+            {selectWinners.status === "pending" ? "Saving..." : "Confirm Winners"}
+          </Button>
+        </div>
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="thirdPlace">Third Place</Label>
-        <Select name="thirdPlace" required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select third place" />
-          </SelectTrigger>
-          <SelectContent>
-            {submissions.map((submission) => (
-              <SelectItem key={submission.id} value={submission.id}>
-                {submission.user.name || 'Anonymous'}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Button type="submit">Select Winners</Button>
-    </form>
-  )
+    </>
+  );
 } 

@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
+import { hash } from 'bcrypt'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
   try {
     const { name, email, password, role } = await req.json()
 
+    // Validate input
     if (!name || !email || !password || !role) {
       return new NextResponse('Missing required fields', { status: 400 })
+    }
+
+    // Validate role
+    const validRoles = ["player", "xpro", "sponsor", "admin"]
+    if (!validRoles.includes(role)) {
+      return new NextResponse('Invalid role', { status: 400 })
     }
 
     // Check if user already exists
@@ -20,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12)
+    const hashedPassword = await hash(password, 10)
 
     // Create user
     const user = await prisma.user.create({
@@ -32,16 +39,15 @@ export async function POST(req: Request) {
       },
     })
 
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    })
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user
+
+    return NextResponse.json(userWithoutPassword)
   } catch (error) {
     console.error('Registration error:', error)
-    return new NextResponse('Internal error', { status: 500 })
+    return new NextResponse(
+      error instanceof Error ? error.message : 'Something went wrong',
+      { status: 500 }
+    )
   }
 } 

@@ -1,106 +1,83 @@
-# AthlinCricket
+# Athlin Cricket Platform
 
-A Next.js application for cricket challenges and feedback.
+A platform where cricket legends (X-Pros) train the next generation through interactive video challenges.
 
-## Environment Variables
+## Features
 
-The following environment variables are required for the application to function:
+- **Role-Based Access Control**
+  - Players: Participate in challenges and receive feedback
+  - X-Pros: Create challenges and provide expert feedback
+  - Sponsors: Support emerging talent
+  - Admins: Manage platform and users
 
-```env
-# Database
-DATABASE_URL="your-database-url"
+- **Challenge System**
+  - Video-based cricket challenges
+  - Personalized feedback from X-Pros
+  - Multiple challenge formats (Batting, Bowling, Fielding)
 
-# NextAuth.js
-NEXTAUTH_URL="https://athlincricket.vercel.app"
-NEXTAUTH_SECRET="your-nextauth-secret"
+- **User Management**
+  - Authentication with NextAuth.js
+  - Role-specific dashboards
+  - Profile management
 
-# UploadThing
-UPLOADTHING_SECRET="your-uploadthing-secret"
+## Tech Stack
 
-# Stripe
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="your-stripe-publishable-key"
-```
-
-## Deployment
-
-The application is deployed on Vercel. The following configuration is used:
-
-```json
-{
-  "version": 2,
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "regions": ["iad1"]
-}
-```
+- **Frontend**: Next.js 14, React, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Backend**: tRPC, Prisma
+- **Database**: PostgreSQL
+- **Authentication**: NextAuth.js
+- **File Upload**: UploadThing
 
 ## Getting Started
 
-1. Clone the repository
+1. Clone the repository:
+   ```bash
+   git clone [repository-url]
+   cd athlincricket
+   ```
+
 2. Install dependencies:
    ```bash
    npm install
    ```
-3. Copy the environment variables from above to a `.env` file
-4. Run the development server:
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Fill in the required environment variables.
+
+4. Set up the database:
+   ```bash
+   npx prisma db push
+   npx prisma db seed
+   ```
+
+5. Run the development server:
    ```bash
    npm run dev
    ```
 
-## Features
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- User authentication with NextAuth.js
-- Video uploads with UploadThing
-- Challenge creation and management
-- Pose feedback system
-- Winner selection for challenges
+## Test Accounts
 
-## Tech Stack
+- **Admin Account**:
+  - Email: admin@athlin.com
+  - Password: password123
 
-- Next.js 14
-- TypeScript
-- Prisma with PostgreSQL
-- NextAuth.js
-- UploadThing
-- Tailwind CSS
-- tRPC
+- **X-Pro Account**:
+  - Email: xpro@athlin.com
+  - Password: password123
 
-## Project Structure
+- **Sponsor Account**:
+  - Email: sponsor@athlin.com
+  - Password: password123
 
-```
-src/
-├── app/
-│   ├── api/
-│   │   ├── challenges/
-│   │   └── uploadthing/
-│   ├── auth/
-│   ├── challenges/
-│   └── dashboard/
-├── components/
-│   └── ui/
-├── lib/
-└── types/
-```
-
-## Authentication
-
-The application uses NextAuth.js for authentication. Users can sign in with their email and password. The following roles are supported:
-
-- `player`: Regular users who can participate in challenges
-- `xpro`: Users who can create challenges
-- `sponsor`: Users who can sponsor challenges
-- `admin`: Administrative users
-
-## Challenge Creation
-
-XPro users can create challenges through a 4-step wizard:
-
-1. Challenge Basics (category and title)
-2. Media & Instructions (video upload and description)
-3. Deadline & Reward (deadline date and optional reward)
-4. Review & Submit (preview and publish)
+- **Player Account**:
+  - Email: player@athlin.com
+  - Password: password123
 
 ## Contributing
 
@@ -112,4 +89,4 @@ XPro users can create challenges through a 4-step wizard:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

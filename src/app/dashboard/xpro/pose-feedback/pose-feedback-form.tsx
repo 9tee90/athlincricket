@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
+import { toast } from "sonner";
+import { api } from "@/trpc/react";
 
 interface PoseFeedbackFormProps {
   submissionId: string;
@@ -11,32 +13,32 @@ interface PoseFeedbackFormProps {
 
 export function PoseFeedbackForm({ submissionId }: PoseFeedbackFormProps) {
   const [feedback, setFeedback] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  
+  const submitFeedback = api.submissions.poseFeedback.useMutation({
+    onSuccess: () => {
+      toast.success("Feedback submitted successfully!");
+      router.refresh();
+    },
+    onError: () => {
+      toast.error("Failed to submit feedback. Please try again.");
+    },
+  });
 
   const handleSubmit = async () => {
-    if (!feedback.trim()) return;
+    if (!feedback.trim()) {
+      toast.error("Please enter feedback before submitting");
+      return;
+    }
 
-    setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/submissions/${submissionId}/pose-feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          poseFeedback: feedback,
-          poseReviewed: true,
-        }),
+      submitFeedback.mutate({
+        submissionId,
+        feedback: feedback.trim(),
       });
-
-      if (response.ok) {
-        router.refresh();
-      }
     } catch (error) {
-      console.error('Error submitting feedback:', error);
-    } finally {
-      setIsSubmitting(false);
+      console.error("Error submitting feedback:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -51,9 +53,9 @@ export function PoseFeedbackForm({ submissionId }: PoseFeedbackFormProps) {
       <Button
         onClick={handleSubmit}
         className="w-full"
-        disabled={isSubmitting || !feedback.trim()}
+        disabled={submitFeedback.status === "pending" || !feedback.trim()}
       >
-        {isSubmitting ? 'Submitting...' : 'Mark as Reviewed'}
+        {submitFeedback.status === "pending" ? 'Submitting...' : 'Mark as Reviewed'}
       </Button>
     </div>
   );
