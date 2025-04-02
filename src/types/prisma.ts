@@ -13,7 +13,7 @@ export interface User {
   coachId: string | null
   createdAt: Date
   updatedAt: Date
-  purchasedCourses: Course[]
+  purchasedCourses?: Course[]
 }
 
 export interface Course {
